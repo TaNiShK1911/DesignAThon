@@ -1,14 +1,9 @@
 import streamlit as st
 import requests
-import pandas as pd
 import folium
 from streamlit_folium import folium_static
-import re
-from datetime import datetime
-import uuid
-import json
 
-# Theme Configuration
+# Configuration
 st.set_page_config(
     page_title="FlightWeatherPro",
     page_icon="✈️",
@@ -16,152 +11,101 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Configuration
 API_BASE_URL = "https://aviationweather.gov/api/data"
 OPENFLIGHTS_URL = "https://raw.githubusercontent.com/jpatokal/openflights/master/data/airports.dat"
 
-# Custom CSS for Beautification with Dark Mode Support
+# Custom CSS for Light Theme with Dark Fonts
 st.markdown("""
     <style>
-    /* Import Tailwind CSS via CDN */
-    @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
-    
-    /* CSS Variables for Theme Colors */
-    :root {
-        --bg-color: #f0f2f6;
-        --text-color: #1e3a8a;
-        --subtitle-color: #4b5563;
-        --input-border: #3b82f6;
-        --button-bg: #3b82f6;
-        --button-hover: #1e40af;
-        --tab-bg: #e5e7eb;
-        --tab-hover: #d1d5db;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-    /* Dark mode variables */
-    [data-theme="dark"] {
-        --bg-color: #1a1a1a;
-        --text-color: #e0e7ff;
-        --subtitle-color: #9ca3af;
-        --input-border: #4f46e5;
-        --button-bg: #4f46e5;
-        --button-hover: #4338ca;
-        --tab-bg: #374151;
-        --tab-hover: #4b5563;
-    }
-
-    /* Apply theme colors */
     .stApp {
-        background-color: var(--bg-color);
-        font-family: 'Arial', sans-serif;
-        transition: all 0.3s ease;
-    }
-    
-    .title {
-        color: var(--text-color);
-        font-size: 2.5rem;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 1rem;
-    }
-    
-    .subtitle {
-        color: var(--subtitle-color);
-        font-size: 1.25rem;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .stTextInput > div > div > input {
-        border: 2px solid var(--input-border);
-        border-radius: 8px;
-        padding: 10px;
-        font-size: 1rem;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-    }
-    
-    .stButton > button {
-        background-color: var(--button-bg);
-        color: white;
-        border-radius: 8px;
-        padding: 0.5rem 2rem;
-        font-size: 1rem;
-        font-weight: bold;
-        transition: background-color 0.3s;
-    }
-    
-    .stButton > button:hover {
-        background-color: var(--button-hover);
-    }
-    
-    .section-header {
-        color: var(--text-color);
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-    }
-    
-    .stTabs > div > div > button {
-        background-color: var(--tab-bg);
-        color: var(--text-color);
-        border-radius: 8px 8px 0 0;
-        padding: 0.5rem 1rem;
-        font-weight: bold;
-    }
-    
-    .stTabs > div > div > button:hover {
-        background-color: var(--tab-hover);
-    }
-    
-    .map-container {
-        border: 2px solid var(--input-border);
-        border-radius: 8px;
-        padding: 10px;
-        background-color: var(--bg-color);
+        background-color: #f8fbff;
+        font-family: 'Inter', sans-serif;
+        color: #1f2937;
     }
 
-    /* Dark mode toggle styles */
-    .theme-toggle {
-        position: fixed;
-        top: 1rem;
-        right: 1rem;
-        z-index: 1000;
+    h1, h2, h3, h4, h5, h6 {
+        color: #1e3a8a;
+        font-weight: 700;
+    }
+
+    .stTextInput > div > div > input {
+        border: 1.5px solid #60a5fa;
+        border-radius: 8px;
+        padding: 0.6rem;
+        font-size: 1rem;
+        color: #1f2937;
+        background-color: #ffffff;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .stButton > button {
+        background-color: #2563eb;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .stButton > button:hover {
+        background-color: #1d4ed8;
+        transform: scale(1.02);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background-color: #e0ecff;
+        color: #1e3a8a;
+        padding: 10px 20px;
+        border-radius: 6px 6px 0 0;
+        font-weight: 600;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+    }
+
+    .sidebar .sidebar-content {
+        background-color: #e5efff;
+        padding: 1rem;
+        border-right: 2px solid #93c5fd;
+    }
+
+    .stMarkdown, .stText, .stDataFrame {
+        color: #1f2937;
+    }
+
+    .folium-map {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin: 1rem 0;
+    }
+
+    hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(to right, #60a5fa, #2563eb);
+        margin: 1rem 0;
+    }
+
+    /* Tooltip overrides */
+    .leaflet-tooltip {
+        background-color: #ffffff;
+        color: #111827;
+        border-radius: 4px;
+        border: 1px solid #d1d5db;
+        padding: 6px 10px;
+        font-size: 14px;
     }
     </style>
-
-    <script>
-    // Add dark mode toggle functionality
-    function toggleTheme() {
-        const html = document.documentElement;
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-    }
-
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
 """, unsafe_allow_html=True)
 
-# Add theme toggle button in sidebar
-with st.sidebar:
-    st.title("Settings")
-    if st.button("Toggle Dark/Light Mode"):
-        # This will trigger a rerun of the app
-        current_theme = st.session_state.get('theme', 'light')
-        st.session_state.theme = 'dark' if current_theme == 'light' else 'light'
-        st.markdown(f"""
-            <script>
-                document.documentElement.setAttribute('data-theme', '{st.session_state.theme}');
-                localStorage.setItem('theme', '{st.session_state.theme}');
-            </script>
-        """, unsafe_allow_html=True)
 
-# Step 1: Fetch Airport Coordinates Dynamically
+# Load Airport Coordinates
 @st.cache_data
 def load_airport_coordinates():
     """Load airport coordinates from OpenFlights dataset."""
@@ -186,47 +130,51 @@ def load_airport_coordinates():
         st.error(f"Failed to load airport coordinates: {str(e)}")
         return {}
 
-# Step 2: Parse Flight Plan
+# Parse Flight Plan with Enhanced Validation
 def parse_flight_plan(flight_plan, airport_coords):
     """Parse flight plan into a list of (airport_id, altitude) tuples."""
     try:
         items = flight_plan.strip().split(',')
         if len(items) % 2 != 0:
             raise ValueError("Invalid flight plan format. Must have pairs of Airport ID and Altitude.")
-        waypoints = [(items[i].upper(), int(items[i+1])) for i in range(0, len(items), 2)]
-        for icao, _ in waypoints:
+        waypoints = []
+        for i in range(0, len(items), 2):
+            icao = items[i].upper()
+            altitude_str = items[i+1]
             if icao not in airport_coords:
                 raise ValueError(f"Unknown or unsupported ICAO ID: {icao}")
+            try:
+                altitude = int(altitude_str)
+                if altitude < 0:
+                    raise ValueError(f"Altitude must be a positive integer: {altitude_str}")
+            except ValueError:
+                raise ValueError(f"Invalid altitude value: {altitude_str}. Must be a positive integer.")
+            waypoints.append((icao, altitude))
         return waypoints
     except Exception as e:
         return f"Error parsing flight plan: {str(e)}"
 
-# Step 3: Fetch Real-Time Weather Data
+# Fetch Weather Data
 def fetch_weather_data(icao_id):
     """Fetch METAR, TAF, PIREP, and SIGMET data for an ICAO ID."""
     try:
         weather_data = {"METAR": "", "TAF": "", "PIREP": "", "SIGMET": ""}
-        
-        # Fetch METAR
         metar_url = f"{API_BASE_URL}/metar?ids={icao_id}&format=json"
         metar_response = requests.get(metar_url, timeout=5)
         if metar_response.status_code == 200 and metar_response.json():
             weather_data["METAR"] = metar_response.json()[0].get("rawOb", "No METAR available")
         
-        # Fetch TAF
         taf_url = f"{API_BASE_URL}/taf?ids={icao_id}&format=json"
         taf_response = requests.get(taf_url, timeout=5)
         if taf_response.status_code == 200 and taf_response.json():
             weather_data["TAF"] = taf_response.json()[0].get("rawOb", "No TAF available")
         
-        # Fetch PIREP (Simplified)
         pirep_url = f"{API_BASE_URL}/pirep?format=json"
         pirep_response = requests.get(pirep_url, timeout=5)
         if pirep_response.status_code == 200:
             pireps = [p for p in pirep_response.json() if icao_id in p.get("rawOb", "")]
             weather_data["PIREP"] = pireps[0].get("rawOb", "No recent PIREP") if pireps else "No recent PIREP"
         
-        # Fetch SIGMET
         sigmet_url = f"{API_BASE_URL}/sigmet?format=json"
         sigmet_response = requests.get(sigmet_url, timeout=5)
         if sigmet_response.status_code == 200:
@@ -235,38 +183,33 @@ def fetch_weather_data(icao_id):
         
         return weather_data
     except Exception as e:
-        return {"Error": f"Failed to fetch weather data for {icao_id}: {str(e)}"}
+        return {"Error": f"Unable to fetch weather data for {icao_id}. Please try again later."}
 
-# Step 4: Summarize Weather Data
+# Generate Weather Summary
 def generate_summary(weather_data, icao_id, altitude):
-    """Generate a concise weather summary for a waypoint."""
-    summary = f"**{icao_id} (Altitude: {altitude}ft)**:\n"
-    
+    """Generate a concise weather summary for a waypoint using an HTML list."""
+    summary = f"<b>{icao_id} (Altitude: {altitude}ft)</b>:<ul>"
     metar = weather_data.get("METAR", "")
     if "CLR" in metar or "SKC" in metar:
-        summary += "- **Conditions**: Clear skies 🌞\n"
+        summary += "<li><b>Conditions</b>: Clear skies 🌞</li>"
     elif "OVC" in metar or "BKN" in metar:
-        summary += "- **Conditions**: Cloudy ☁️\n"
+        summary += "<li><b>Conditions</b>: Cloudy ☁️</li>"
     else:
-        summary += "- **Conditions**: Variable 🌥️\n"
-    
+        summary += "<li><b>Conditions</b>: Variable 🌥️</li>"
     taf = weather_data.get("TAF", "")
-    summary += "- **Forecast**: Stable conditions expected 📈\n" if taf else "- **Forecast**: Unavailable ❓\n"
-    
+    summary += "<li><b>Forecast</b>: Stable conditions expected 📈</li>" if taf else "<li><b>Forecast</b>: Unavailable ❓</li>"
     pirep = weather_data.get("PIREP", "")
-    summary += "- **Pilot Reports**: No significant issues ✅\n" if "No recent PIREP" in pirep else f"- **Pilot Reports**: {pirep} ✈️\n"
-    
+    summary += "<li><b>Pilot Reports</b>: No significant issues ✅</li>" if "No recent PIREP" in pirep else f"<li><b>Pilot Reports</b>: {pirep} ✈️</li>"
     sigmet = weather_data.get("SIGMET", "")
-    summary += "- **Hazards**: None reported 🟢\n" if "No active SIGMET" in sigmet else f"- **Hazards**: {sigmet} ⚠️\n"
-    
+    summary += "<li><b>Hazards</b>: None reported 🟢</li>" if "No active SIGMET" in sigmet else f"<li><b>Hazards</b>: {sigmet} ⚠️</li>"
+    summary += "</ul>"
     return summary
 
-# Step 5: Classify Weather Activity (Stretch Goal)
+# Classify Weather
 def classify_weather(weather_data):
     """Classify weather as VFR, Significant, or Severe."""
     metar = weather_data.get("METAR", "")
     sigmet = weather_data.get("SIGMET", "")
-    
     if "No active SIGMET" in sigmet and ("CLR" in metar or "SKC" in metar):
         return "VFR Conditions", "green"
     elif "TS" in metar or "SEV" in sigmet:
@@ -274,22 +217,21 @@ def classify_weather(weather_data):
     else:
         return "Significant Weather Activity", "yellow"
 
-# Step 6: Generate Detailed Report
+# Generate Detailed Report
 def generate_detailed_report(weather_data, icao_id, altitude):
-    """Generate a detailed weather report for a waypoint."""
-    report = f"**Detailed Weather Report for {icao_id} (Altitude: {altitude}ft)**:\n"
-    report += f"- **METAR**: {weather_data.get('METAR', 'Unavailable')}\n"
-    report += f"- **TAF**: {weather_data.get('TAF', 'Unavailable')}\n"
-    report += f"- **PIREP**: {weather_data.get('PIREP', 'No recent PIREP')}\n"
-    report += f"- **SIGMET**: {weather_data.get('SIGMET', 'No active SIGMET')}\n"
+    """Generate a detailed weather report for a waypoint with line breaks."""
+    report = f"<b>Detailed Weather Report for {icao_id} (Altitude: {altitude}ft)</b>:<br>"
+    report += f"- <b>METAR</b>: {weather_data.get('METAR', 'Unavailable')}<br>"
+    report += f"- <b>TAF</b>: {weather_data.get('TAF', 'Unavailable')}<br>"
+    report += f"- <b>PIREP</b>: {weather_data.get('PIREP', 'No recent PIREP')}<br>"
+    report += f"- <b>SIGMET</b>: {weather_data.get('SIGMET', 'No active SIGMET')}<br>"
     classification, _ = classify_weather(weather_data)
-    report += f"- **Weather Classification**: {classification}\n"
+    report += f"- <b>Weather Classification</b>: {classification}<br>"
     return report
 
-# Step 7: Create Graphical Overlay (Stretch Goal)
+# Create Weather Map
 def create_weather_map(waypoints, weather_data_list, airport_coords):
     """Create a Folium map with weather overlays."""
-    # Calculate map center based on waypoints
     lats = [airport_coords[icao][0] for icao, _ in waypoints]
     lons = [airport_coords[icao][1] for icao, _ in waypoints]
     center_lat = sum(lats) / len(lats)
@@ -310,7 +252,6 @@ def create_weather_map(waypoints, weather_data_list, airport_coords):
             fill_opacity=0.7
         ).add_to(m)
     
-    # Add flight path with tooltip
     path = [(airport_coords[icao][0], airport_coords[icao][1]) for icao, _ in waypoints]
     folium.PolyLine(
         path,
@@ -322,11 +263,75 @@ def create_weather_map(waypoints, weather_data_list, airport_coords):
     
     return m
 
-# Step 8: Streamlit Web Interface
+# Function to get recent flights from history
+def get_recent_flights():
+    if 'flight_history' not in st.session_state:
+        st.session_state.flight_history = []
+    return st.session_state.flight_history
+
+# Function to save flight to history
+def save_flight_to_history(flight_plan):
+    if 'flight_history' not in st.session_state:
+        st.session_state.flight_history = []
+    
+    # Add to history if not already there
+    if flight_plan not in st.session_state.flight_history:
+        st.session_state.flight_history.append(flight_plan)
+        # Keep only the 5 most recent flights
+        if len(st.session_state.flight_history) > 5:
+            st.session_state.flight_history.pop(0)
+
+# Main Interface
 def main():
+    # Setup sidebar
+    with st.sidebar:
+        st.markdown('<h2 class="text-xl font-bold text-blue-600 mb-4">Flight Weather Pro</h2>', unsafe_allow_html=True)
+        st.markdown("### Navigation")
+        st.markdown("- [Weather Briefing](#enter-flight-plan)")
+        st.markdown("- [About](#about)")
+        st.markdown("- [Help](#help)")
+        
+        st.markdown("<hr>", unsafe_allow_html=True)
+        
+        st.markdown("### Recent Flights")
+        recent_flights = get_recent_flights()
+        if recent_flights:
+            for flight in recent_flights:
+                if st.button(f"📋 {flight}", key=f"history_{flight}"):
+                    st.session_state.flight_plan = flight
+        else:
+            st.write("No recent flights found")
+        
+        st.markdown("<hr>", unsafe_allow_html=True)
+        
+        st.markdown("### Settings")
+        map_style = st.selectbox(
+            "Map Style",
+            ["CartoDB Positron", "OpenStreetMap", "Stamen Terrain"],
+            index=0
+        )
+        
+        display_units = st.radio(
+            "Display Units",
+            ["Imperial", "Metric"],
+            index=0
+        )
+        
+        st.markdown("<hr>", unsafe_allow_html=True)
+        
+        st.markdown("### About")
+        st.markdown("""
+        FlightWeatherPro provides real-time aviation weather data for flight planning.
+        
+        Data sources:
+        - Aviation Weather Center
+        - OpenFlights Database
+        """)
+    
+    # Main content
     # Header
-    st.markdown('<div class="title">FlightWeatherPro</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Real-Time Aviation Weather Briefings for Any Flight Plan</div>', unsafe_allow_html=True)
+    st.markdown('<h1 class="text-4xl font-bold text-blue-600 text-center mb-4">FlightWeatherPro</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="text-xl text-gray-600 text-center mb-8">Real-Time Aviation Weather Briefings for Any Flight Plan</p>', unsafe_allow_html=True)
     
     # Load airport coordinates
     airport_coords = load_airport_coordinates()
@@ -335,57 +340,105 @@ def main():
         return
     
     # Input Section
-    with st.container():
-        st.markdown('<div class="section-header">Enter Flight Plan</div>', unsafe_allow_html=True)
-        st.write("Format: ICAO,Altitude,ICAO,Altitude,... (e.g., KPHX,1500,KLAX,35000,KJFK,39000)")
-        flight_plan = st.text_input("", placeholder="Enter flight plan here", key="flight_plan")
+    st.markdown('<h2 class="text-2xl font-bold text-blue-600 mb-4" id="enter-flight-plan">Enter Flight Plan</h2>', unsafe_allow_html=True)
+    st.write("Format: ICAO,Altitude,ICAO,Altitude,... (e.g., KPHX,1500,KLAX,35000,KJFK,39000)")
+    
+    flight_plan = st.text_input("", placeholder="Enter flight plan here", key="flight_plan", value=st.session_state.get('flight_plan', ''))
+    submit = st.button("Generate Weather Briefing", key="generate_button")
+    
+    # Results Section
+    if submit:
+        if not flight_plan:
+            st.error("Please enter a valid flight plan.")
+            return
+            
+        # Save to history
+        save_flight_to_history(flight_plan)
         
-        if st.button("Generate Weather Briefing", key="generate_button"):
-            if not flight_plan:
-                st.error("Please enter a valid flight plan.")
+        # Parse flight plan
+        with st.spinner("Processing flight plan..."):
+            waypoints = parse_flight_plan(flight_plan, airport_coords)
+            if isinstance(waypoints, str):
+                st.error(waypoints)
                 return
             
-            # Parse flight plan
-            with st.spinner("Processing flight plan..."):
-                waypoints = parse_flight_plan(flight_plan, airport_coords)
-                if isinstance(waypoints, str):
-                    st.error(waypoints)
-                    return
-                
-                # Fetch and process weather data
-                weather_data_list = []
-                summaries = []
-                detailed_reports = []
-                
-                for icao_id, altitude in waypoints:
-                    with st.spinner(f"Fetching weather data for {icao_id}..."):
-                        weather_data = fetch_weather_data(icao_id)
-                        if "Error" in weather_data:
-                            st.error(weather_data["Error"])
-                            return
-                        weather_data_list.append(weather_data)
-                        summaries.append(generate_summary(weather_data, icao_id, altitude))
-                        detailed_reports.append(generate_detailed_report(weather_data, icao_id, altitude))
-            
-            # Output Tabs
-            tab1, tab2, tab3 = st.tabs(["Weather Summary", "Detailed Reports", "Weather Map"])
-            
-            with tab1:
-                st.markdown('<div class="section-header">Weather Summary</div>', unsafe_allow_html=True)
-                for summary in summaries:
-                    st.markdown(summary, unsafe_allow_html=True)
-            
-            with tab2:
-                st.markdown('<div class="section-header">Detailed Weather Reports</div>', unsafe_allow_html=True)
-                for i, report in enumerate(detailed_reports, 1):
-                    with st.expander(f"Report for Waypoint {i}", expanded=False):
-                        st.markdown(report, unsafe_allow_html=True)
-            
-            with tab3:
-                st.markdown('<div class="section-header">Weather Map Overlay</div>', unsafe_allow_html=True)
-                with st.container():
-                    weather_map = create_weather_map(waypoints, weather_data_list, airport_coords)
-                    folium_static(weather_map, width=700, height=500)
+            # Fetch weather data
+            weather_data_list = []
+            summaries = []
+            detailed_reports = []
+            for icao_id, altitude in waypoints:
+                with st.spinner(f"Fetching weather data for {icao_id}..."):
+                    weather_data = fetch_weather_data(icao_id)
+                    if "Error" in weather_data:
+                        st.error(weather_data["Error"])
+                        return
+                    weather_data_list.append(weather_data)
+                    summaries.append(generate_summary(weather_data, icao_id, altitude))
+                    detailed_reports.append(generate_detailed_report(weather_data, icao_id, altitude))
+        
+        # Optional divider for visual separation
+        st.markdown("<hr>", unsafe_allow_html=True)
+        
+        # Output Tabs
+        tab1, tab2, tab3 = st.tabs(["Weather Summary", "Detailed Reports", "Weather Map"])
+        
+        with tab1:
+            st.markdown('<h3 class="text-2xl font-bold text-blue-600 mb-4">Weather Summary</h3>', unsafe_allow_html=True)
+            for summary in summaries:
+                st.markdown(f'<div class="p-4 mb-4 border border-gray-300 rounded-lg bg-white">{summary}</div>', unsafe_allow_html=True)
+        
+        with tab2:
+            st.markdown('<h3 class="text-2xl font-bold text-blue-600 mb-4">Detailed Weather Reports</h3>', unsafe_allow_html=True)
+            for i, (icao_id, altitude) in enumerate(waypoints, 1):
+                with st.expander(f"Report for {icao_id} (Altitude: {altitude}ft)", expanded=False):
+                    st.markdown(detailed_reports[i-1], unsafe_allow_html=True)
+        
+        with tab3:
+            st.markdown('<h3 class="text-2xl font-bold text-blue-600 mb-4">Weather Map Overlay</h3>', unsafe_allow_html=True)
+            weather_map = create_weather_map(waypoints, weather_data_list, airport_coords)
+            folium_static(weather_map, width=700, height=500)
+            st.markdown("""
+                ### Legend
+                - 🟢 Green: VFR Conditions
+                - 🟡 Yellow: Significant Weather Activity
+                - 🔴 Red: Severe Weather Activity
+            """, unsafe_allow_html=True)
+    
+    # About and Help sections
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown('<h2 class="text-2xl font-bold text-blue-600 mb-4" id="about">About</h2>', unsafe_allow_html=True)
+    st.markdown("""
+    **FlightWeatherPro** is a comprehensive aviation weather briefing tool designed for pilots and flight dispatchers. 
+    It provides real-time weather data for any flight path, helping users make informed decisions about their routes.
+    
+    The application retrieves data from the Aviation Weather Center's API and integrates it with airport location data
+    from the OpenFlights database.
+    """)
+    
+    st.markdown('<h2 class="text-2xl font-bold text-blue-600 mb-4 mt-6" id="help">Help</h2>', unsafe_allow_html=True)
+    st.markdown("""
+    ### How to Use FlightWeatherPro
+    
+    1. **Enter your flight plan** in the format: `ICAO,Altitude,ICAO,Altitude,...`
+       - Example: `KPHX,1500,KLAX,35000,KJFK,39000`
+       - ICAO codes must be valid airport identifiers
+       - Altitude must be specified in feet
+    
+    2. **Click "Generate Weather Briefing"** to process your flight plan
+    
+    3. **View results** in three tabs:
+       - **Weather Summary**: Quick overview of conditions at each waypoint
+       - **Detailed Reports**: Complete METAR, TAF, PIREP, and SIGMET information
+       - **Weather Map**: Visual representation of your flight path with weather conditions
+    
+    4. **Use the sidebar** to access:
+       - Recent flights for quick reuse
+       - Map style settings
+       - Unit preferences
+    """)
+    
+    # Attribution
+    st.markdown('<p class="text-center text-gray-500 mt-8">Data provided by the Aviation Weather Center</p>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
