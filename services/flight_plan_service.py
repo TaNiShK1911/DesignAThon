@@ -22,3 +22,24 @@ def parse_flight_plan(flight_plan, airport_coords):
         return waypoints
     except Exception as e:
         return f"Error parsing flight plan: {str(e)}"
+    
+def get_flight_plan_summary(departure, destination, flight_date):
+    """Generate a summary of the flight plan."""
+    try:
+        summary = []
+        summary.append(f"### Route Summary")
+        summary.append(f"*Departure:* {departure}")
+        summary.append(f"*Destination:* {destination}")
+        summary.append(f"*Flight Date:* {flight_date}")
+        
+        # Add estimated flight time (placeholder)
+        summary.append("\n### Estimated Flight Time")
+        summary.append("Note: This is a placeholder. Actual flight time would be calculated based on aircraft performance and weather conditions.")
+        
+        # Add route description
+        summary.append("\n### Route Description")
+        summary.append(f"Direct route from {departure} to {destination}.")
+        
+        return "\n".join(summary)
+    except Exception as e:
+        return None

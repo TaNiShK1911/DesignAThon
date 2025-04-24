@@ -44,3 +44,32 @@ def classify_weather(weather_data):
         return "Severe Weather Activity", "red"
     else:
         return "Significant Weather Activity", "yellow"
+    
+def get_weather_summary(departure, destination, flight_date):
+    """Generate a weather summary for the flight route."""
+    try:
+        departure_weather = fetch_weather_data(departure)
+        destination_weather = fetch_weather_data(destination)
+        
+        if "Error" in departure_weather or "Error" in destination_weather:
+            return None
+            
+        summary = []
+        
+        # Departure weather
+        summary.append(f"### Departure ({departure})")
+        summary.append(f"*Current Conditions:* {departure_weather['METAR']}")
+        summary.append(f"*Forecast:* {departure_weather['TAF']}")
+        summary.append(f"*Recent Reports:* {departure_weather['PIREP']}")
+        summary.append(f"*SIGMETs:* {departure_weather['SIGMET']}")
+        
+        # Destination weather
+        summary.append(f"\n### Destination ({destination})")
+        summary.append(f"*Current Conditions:* {destination_weather['METAR']}")
+        summary.append(f"*Forecast:* {destination_weather['TAF']}")
+        summary.append(f"*Recent Reports:* {destination_weather['PIREP']}")
+        summary.append(f"*SIGMETs:* {destination_weather['SIGMET']}")
+        
+        return "\n".join(summary)
+    except Exception as e:
+        return None
