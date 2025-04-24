@@ -1,3 +1,4 @@
+# ui/styles.py
 import streamlit as st
 
 def apply_custom_styles():
@@ -87,6 +88,45 @@ def apply_custom_styles():
             border: 1px solid #d1d5db;
             padding: 6px 10px;
             font-size: 14px;
+        }
+        
+        /* Chat interface styling */
+        .chat-message {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-message {
+            background-color: #e0f2fe;
+            border-right: 3px solid #60a5fa;
+            text-align: right;
+        }
+        
+        .assistant-message {
+            background-color: #f3f4f6;
+            border-left: 3px solid #9ca3af;
+        }
+        
+        /* Download button */
+        .download-button {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background-color: #2563eb;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            margin: 1rem 0;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .download-button:hover {
+            background-color: #1d4ed8;
+            transform: scale(1.02);
         }
         </style>
     """, unsafe_allow_html=True)

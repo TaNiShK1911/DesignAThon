@@ -1,3 +1,4 @@
+# app.py
 import streamlit as st
 from ui.styles import apply_custom_styles
 from ui.sidebar import setup_sidebar

@@ -224,7 +224,8 @@ def generate_detailed_report(weather_data, icao_id, altitude):
     report += f"- <b>METAR</b>: {weather_data.get('METAR', 'Unavailable')}<br>"
     report += f"- <b>TAF</b>: {weather_data.get('TAF', 'Unavailable')}<br>"
     report += f"- <b>PIREP</b>: {weather_data.get('PIREP', 'No recent PIREP')}<br>"
-    report += f"- <b>SIGMET</b>: {weather_data.get('SIGMET', 'No active SIGMET')}<br>"
+    report += f"- <b>SIGMET</b>: {weather_data.get('SIGMET', 'No active SIGMET') if weather_data.get('SIGMET') else "No Activate SIGMET"}<br>"
+    print(weather_data.get('SIGMET'))
     classification, _ = classify_weather(weather_data)
     report += f"- <b>Weather Classification</b>: {classification}<br>"
     return report
